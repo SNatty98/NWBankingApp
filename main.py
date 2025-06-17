@@ -8,6 +8,17 @@ import json
 st.set_page_config(page_title="Nationwide Bank Statement App",
                    layout="wide")
 
+# Initialize categories.
+if "categories" not in st.session_state:
+    st.session_state.categories = {
+        "Uncategorised": []
+    }
+
+
+def save_categories():
+    with open("categories.json", "w") as f:
+        json.dump(st.session_state.categories, f)
+
 
 def load_transactions(file):
     try:
@@ -35,12 +46,24 @@ def main():
         df["Category"] = "No Category"
 
         if df is not None:
+
             out_df = df[df["Paid out"].notnull()].copy()
             in_df = df[df["Paid in"].notnull()].copy()
 
             tab1, tab2 = st.tabs(["Money out", "Money In"])
 
             with tab1:
+                st.subheader("Your Expenses")
+
+                new_category = st.text_input("Enter a Category!")
+                add_button = st.button("Add Category")
+
+                if add_button and new_category:
+                    if new_category not in st.session_state.categories:
+                        st.session_state.categories[new_category] = []
+                        save_categories()
+                        st.rerun()
+
                 filter_out_df = out_df.drop(columns=["Paid in", "Balance"])
                 st.write(filter_out_df)
             with tab2:
